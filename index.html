@@ -18,6 +18,10 @@
             text-align: center;
             margin: 0;
             padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .login-form, .pdf-viewer {
@@ -30,10 +34,17 @@
 
         .pdf-viewer {
             display: none;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
-        canvas {
+        #pdf-canvas {
             border: 1px solid #ccc;
+            margin: auto;
+            width: 100%;
+            height: 100%;
         }
 
         h1 {
@@ -50,8 +61,33 @@
             box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
         }
 
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .zoom-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .page-number {
+            margin: 0 20px;
+        }
+
         .pdf-container {
             padding: 20px;
+            flex-grow: 1;
+        }
+
+        .pdf-container canvas {
+            max-width: 100%;
+            height: auto;
         }
 
         /* Animation for showing elements */
@@ -85,9 +121,21 @@
     </div>
 
     <!-- عارض PDF -->
-    <div class="pdf-viewer pdf-container animate__animated animate-fade-in">
-        <h2>عرض الـ PDF</h2>
-        <canvas id="pdf-canvas"></canvas>
+    <div class="pdf-viewer animate__animated animate-fade-in">
+        <div class="controls">
+            <div class="zoom-buttons">
+                <button id="zoom-in" class="btn btn-outline-secondary">+</button>
+                <button id="zoom-out" class="btn btn-outline-secondary">-</button>
+            </div>
+            <div>
+                <button id="prev-page" class="btn btn-outline-primary">السابق</button>
+                <span class="page-number">صفحة <span id="page-num"></span> من <span id="page-count"></span></span>
+                <button id="next-page" class="btn btn-outline-primary">التالي</button>
+            </div>
+        </div>
+        <div class="pdf-container">
+            <canvas id="pdf-canvas"></canvas>
+        </div>
     </div>
 
     <!-- Bootstrap JS -->
@@ -133,39 +181,84 @@
             }
         });
 
-        // منع لقطة الشاشة
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') {
-                document.body.style.filter = 'blur(10px)';
-            } else {
-                document.body.style.filter = 'none';
-            }
-        });
+        // إعدادات عرض الـ PDF
+        var pdfDoc = null,
+            pageNum = 1,
+            pageRendering = false,
+            pageNumPending = null,
+            scale = 1.5,
+            canvas = document.getElementById('pdf-canvas'),
+            ctx = canvas.getContext('2d');
 
-        // عرض الـ PDF باستخدام PDF.js
+        // تحميل ملف الـ PDF
         function displayPDF() {
             var url = 'n.pdf'; // وضع رابط الـ PDF هنا
 
-            var loadingTask = pdfjsLib.getDocument(url);
-            loadingTask.promise.then(function(pdf) {
-                pdf.getPage(1).then(function(page) {
-                    var scale = 1.5;
-                    var viewport = page.getViewport({scale: scale});
-
-                    var canvas = document.getElementById('pdf-canvas');
-                    var context = canvas.getContext('2d');
-
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-
-                    var renderContext = {
-                        canvasContext: context,
-                        viewport: viewport
-                    };
-                    page.render(renderContext);
-                });
+            pdfjsLib.getDocument(url).promise.then(function(pdfDoc_) {
+                pdfDoc = pdfDoc_;
+                document.getElementById('page-count').textContent = pdfDoc.numPages;
+                renderPage(pageNum);
             });
         }
+
+        // عرض الصفحة المحددة
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                var viewport = page.getViewport({ scale: scale });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                var renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+
+                var renderTask = page.render(renderContext);
+
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+
+                document.getElementById('page-num').textContent = num;
+            });
+        }
+
+        // التعامل مع التكبير
+        document.getElementById('zoom-in').addEventListener('click', function() {
+            scale += 0.1;
+            renderPage(pageNum);
+        });
+
+        // التعامل مع التصغير
+        document.getElementById('zoom-out').addEventListener('click', function() {
+            if (scale > 0.5) {
+                scale -= 0.1;
+                renderPage(pageNum);
+            }
+        });
+
+        // عرض الصفحة السابقة
+        document.getElementById('prev-page').addEventListener('click', function() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            renderPage(pageNum);
+        });
+
+        // عرض الصفحة التالية
+        document.getElementById('next-page').addEventListener('click', function() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            renderPage(pageNum);
+        });
     </script>
 
 </body>
