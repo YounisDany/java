@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>عرض PDF محمي</title>
+    
+    <!-- إضافة Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- إضافة مكتبة الحركات Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
             text-align: center;
             margin: 0;
             padding: 0;
@@ -28,27 +35,65 @@
         canvas {
             border: 1px solid #ccc;
         }
+
+        h1 {
+            margin-top: 20px;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+
+        .pdf-container {
+            padding: 20px;
+        }
+
+        /* Animation for showing elements */
+        .animate-fade-in {
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <h1>تسجيل الدخول لعرض الـ PDF</h1>
+    <h1 class="animate__animated animate__fadeInDown">تسجيل الدخول لعرض الـ PDF</h1>
 
     <!-- نموذج تسجيل الدخول -->
-    <div class="login-form">
+    <div class="login-form form-container animate__animated animate__fadeInUp">
         <form id="loginForm">
-            <label for="code">رمز المرور:</label>
-            <input type="text" id="code" name="code" required>
-            <button type="submit">دخول</button>
+            <div class="mb-3">
+                <label for="code" class="form-label">رمز المرور:</label>
+                <input type="text" id="code" name="code" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">دخول</button>
         </form>
     </div>
 
     <!-- عارض PDF -->
-    <div class="pdf-viewer">
+    <div class="pdf-viewer pdf-container animate__animated animate-fade-in">
         <h2>عرض الـ PDF</h2>
         <canvas id="pdf-canvas"></canvas>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- مكتبة PDF.js -->
     <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
 
     <script>
@@ -61,19 +106,24 @@
         // اختيار رمز مرور عشوائي من المصفوفة
         const sessionCode = sessionCodes[Math.floor(Math.random() * sessionCodes.length)];
 
+        console.log("رمز الجلسة هو: " + sessionCode); // لأغراض الاختبار
+
         // عرض نموذج تسجيل الدخول
         document.querySelector('.login-form').style.display = 'block';
 
         // التعامل مع تسجيل الدخول
         document.getElementById('loginForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            const inputCode = document.getElementById('code').value;
+            const inputCode = parseInt(document.getElementById('code').value, 10); // تحويل الإدخال إلى رقم
 
-            if (inputCode === sessionCode.toString()) {
+            if (inputCode === sessionCode) {
                 alert('تم تسجيل الدخول بنجاح!');
-                document.querySelector('.login-form').style.display = 'none';
-                document.querySelector('.pdf-viewer').style.display = 'block';
-                displayPDF();
+                document.querySelector('.login-form').classList.add('animate__fadeOutUp');
+                setTimeout(() => {
+                    document.querySelector('.login-form').style.display = 'none';
+                    document.querySelector('.pdf-viewer').style.display = 'block';
+                    displayPDF();
+                }, 1000);
             } else {
                 alert('رمز المرور غير صحيح!');
             }
@@ -90,7 +140,7 @@
 
         // عرض الـ PDF باستخدام PDF.js
         function displayPDF() {
-            var url = 'n.pdf'; // ضع هنا رابط الـ PDF
+            var url = 'n.pdf'; // وضع رابط الـ PDF هنا
 
             var loadingTask = pdfjsLib.getDocument(url);
             loadingTask.promise.then(function(pdf) {
