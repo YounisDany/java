@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض PDF محمي</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .login-form, .pdf-viewer {
+            margin-top: 50px;
+        }
+
+        .login-form {
+            display: none;
+        }
+
+        .pdf-viewer {
+            display: none;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>تسجيل الدخول لعرض الـ PDF</h1>
+
+    <!-- نموذج تسجيل الدخول -->
+    <div class="login-form">
+        <form id="loginForm">
+            <label for="code">رمز المرور:</label>
+            <input type="text" id="code" name="code" required>
+            <button type="submit">دخول</button>
+        </form>
+    </div>
+
+    <!-- عارض PDF -->
+    <div class="pdf-viewer">
+        <h2>عرض الـ PDF</h2>
+        <canvas id="pdf-canvas"></canvas>
+    </div>
+
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+
+    <script>
+        // توليد مصفوفة من الأرقام بين 1900 و 2000
+        const sessionCodes = [];
+        for (let i = 1900; i <= 2000; i++) {
+            sessionCodes.push(i);
+        }
+
+        // اختيار رمز مرور عشوائي من المصفوفة
+        const sessionCode = sessionCodes[Math.floor(Math.random() * sessionCodes.length)];
+
+        // عرض نموذج تسجيل الدخول
+        document.querySelector('.login-form').style.display = 'block';
+
+        // التعامل مع تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const inputCode = document.getElementById('code').value;
+
+            if (inputCode === sessionCode.toString()) {
+                alert('تم تسجيل الدخول بنجاح!');
+                document.querySelector('.login-form').style.display = 'none';
+                document.querySelector('.pdf-viewer').style.display = 'block';
+                displayPDF();
+            } else {
+                alert('رمز المرور غير صحيح!');
+            }
+        });
+
+        // منع لقطة الشاشة
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                document.body.style.filter = 'blur(10px)';
+            } else {
+                document.body.style.filter = 'none';
+            }
+        });
+
+        // عرض الـ PDF باستخدام PDF.js
+        function displayPDF() {
+            var url = 'n.pdf'; // ضع هنا رابط الـ PDF
+
+            var loadingTask = pdfjsLib.getDocument(url);
+            loadingTask.promise.then(function(pdf) {
+                pdf.getPage(1).then(function(page) {
+                    var scale = 1.5;
+                    var viewport = page.getViewport({scale: scale});
+
+                    var canvas = document.getElementById('pdf-canvas');
+                    var context = canvas.getContext('2d');
+
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    var renderContext = {
+                        canvasContext: context,
+                        viewport: viewport
+                    };
+                    page.render(renderContext);
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>
