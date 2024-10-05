@@ -97,16 +97,19 @@
     <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
 
     <script>
-        // توليد مصفوفة من الأرقام بين 1900 و 2000
-        const sessionCodes = [];
-        for (let i = 1900; i <= 2000; i++) {
-            sessionCodes.push(i);
-        }
-
-        // اختيار رمز مرور عشوائي من المصفوفة
-        const sessionCode = sessionCodes[Math.floor(Math.random() * sessionCodes.length)];
-
-        console.log("رمز الجلسة هو: " + sessionCode); // لأغراض الاختبار
+        // مصفوفة من 50 رمز مرور
+        const sessionCodes = [
+            "password1", "password2", "secureCode3", "loginKey4", "authPass5",
+            "accessToken6", "secretCode7", "userLogin8", "sessionKey9", "authCode10",
+            "uniqueKey11", "loginToken12", "passCode13", "secureLogin14", "entryKey15",
+            "unlockCode16", "authToken17", "passphrase18", "userAccess19", "loginPass20",
+            "sessionCode21", "privateKey22", "loginSecret23", "authEntry24", "safeLogin25",
+            "accessPass26", "sessionPass27", "userToken28", "securePass29", "loginCode30",
+            "verifyKey31", "uniquePass32", "secureToken33", "authLogin34", "sessionSecret35",
+            "accessCode36", "privatePass37", "loginEntry38", "secureKey39", "authPass40",
+            "safeAccess41", "userCode42", "sessionLogin43", "uniqueEntry44", "privateLogin45",
+            "accessSecret46", "safePass47", "secureAccess48", "sessionToken49", "loginUnlock50"
+        ];
 
         // عرض نموذج تسجيل الدخول
         document.querySelector('.login-form').style.display = 'block';
@@ -114,9 +117,10 @@
         // التعامل مع تسجيل الدخول
         document.getElementById('loginForm').addEventListener('submit', function (e) {
             e.preventDefault();
-            const inputCode = parseInt(document.getElementById('code').value, 10); // تحويل الإدخال إلى رقم
+            const inputCode = document.getElementById('code').value; // الحصول على الرمز المدخل
 
-            if (inputCode === sessionCode) {
+            // التحقق مما إذا كان الرمز المدخل موجود في المصفوفة
+            if (sessionCodes.includes(inputCode)) {
                 alert('تم تسجيل الدخول بنجاح!');
                 document.querySelector('.login-form').classList.add('animate__fadeOutUp');
                 setTimeout(() => {
